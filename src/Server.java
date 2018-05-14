@@ -2,23 +2,24 @@ import com.sun.net.httpserver.*;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.net.URI;
 
 public class Server {
     public static void main(String[] args) throws Exception {
         HttpServer server = HttpServer.create();
-        server.bind(new InetSocketAddress(8765), 0);
+        server.bind(new InetSocketAddress(8080), 0);
 
         server.createContext("/", new IndexHandler());
-        server.createContext("/info", new EchoHandler());
-        server.createContext("/get", new GetHandler());
-
 
         server.setExecutor(null);
         server.start();
     }
 
-    static class IndexHandler implements HttpHandler {
+/*    static class IndexHandler implements HttpHandler {
         public void handle(HttpExchange t) throws IOException {
+            Headers headers = t.getResponseHeaders();
+            headers.add("Content-Type", "text/html");
+
             String response = "Use /get to download a File \n" +
                     "Use /info to see current request information (both client and server)";
             t.sendResponseHeaders(200, response.length());
@@ -26,47 +27,63 @@ public class Server {
             os.write(response.getBytes());
             os.close();
         }
-    }
+    }*/
 
-    static class EchoHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            StringBuilder builder = new StringBuilder();
-
-            builder.append("<h1>URI: ").append(exchange.getRequestURI()).append("</h1>");
-
-            Headers headers = exchange.getRequestHeaders();
-            for (String header : headers.keySet()) {
-                builder.append("<p>").append(header).append("=")
-                        .append(headers.getFirst(header)).append("</p>");
-            }
-
-            byte[] bytes = builder.toString().getBytes();
-            exchange.sendResponseHeaders(200, bytes.length);
-
-            OutputStream os = exchange.getResponseBody();
-            os.write(bytes);
-            System.out.println(builder);
-            os.close();
-        }
-    }
-
-    static class GetHandler implements HttpHandler {
+    static class IndexHandler implements HttpHandler {
         public void handle(HttpExchange t) throws IOException {
+            String root = "c:/cntserver/var/www";
+            URI uri = t.getRequestURI();
+            System.out.println("looking for: "+ root + uri.getPath());
+            String uriPath = uri.getPath();
 
-            Headers headers = t.getResponseHeaders();
-            headers.add("Content-Type", "application/txt");
+            if (uriPath.equalsIgnoreCase("/") || uriPath.equalsIgnoreCase("/index") || uriPath.equalsIgnoreCase("/index.html")) {
+                String path = "/index.html";
+                File file = new File(root + path).getCanonicalFile();
+                String mime = "text/html";
 
-            File file = new File ("C:/Work/Hey.txt");
-            byte [] bytearray  = new byte [(int)file.length()];
-            FileInputStream fis = new FileInputStream(file);
-            BufferedInputStream bis = new BufferedInputStream(fis);
-            bis.read(bytearray, 0, bytearray.length);
+                Headers headers = t.getResponseHeaders();
+                headers.set("Content-Type", mime);
+                t.sendResponseHeaders(200, 0);
 
-            t.sendResponseHeaders(200, file.length());
-            OutputStream os = t.getResponseBody();
-            os.write(bytearray,0,bytearray.length);
-            os.close();
+                OutputStream os = t.getResponseBody();
+                FileInputStream fs = new FileInputStream(file);
+                final byte[] buffer = new byte[0x10000];
+                int count = 0;
+                while ((count = fs.read(buffer)) >= 0) {
+                    os.write(buffer,0,count);
+                }
+                fs.close();
+                os.close();
+            }
+            else if (uri.getPath().equalsIgnoreCase("/kitten")){
+                String path = "/kitten.jpeg";
+                File file = new File(root + path).getCanonicalFile();
+                String mime = "image/jpeg";
+
+                byte[] bytes  = new byte [(int)file.length()];
+
+                OutputStream os = t.getResponseBody();
+                FileInputStream fs = new FileInputStream(file);
+
+                BufferedInputStream bufferedInputStream = new BufferedInputStream(fs);
+                bufferedInputStream.read(bytes, 0, bytes.length);
+
+
+                Headers headers = t.getResponseHeaders();
+                headers.set("Content-Type", mime);
+                t.sendResponseHeaders(200, file.length());
+                os.write(bytes, 0, bytes.length);
+                os.close();
+                fs.close();
+            }
+            else {
+                String response = "404 (Not Found)\n";
+                t.sendResponseHeaders(404, response.length());
+                OutputStream os = t.getResponseBody();
+                os.write(response.getBytes());
+                os.close();
+            }
         }
     }
+
 }
