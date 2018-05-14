@@ -15,20 +15,6 @@ public class Server {
         server.start();
     }
 
-/*    static class IndexHandler implements HttpHandler {
-        public void handle(HttpExchange t) throws IOException {
-            Headers headers = t.getResponseHeaders();
-            headers.add("Content-Type", "text/html");
-
-            String response = "Use /get to download a File \n" +
-                    "Use /info to see current request information (both client and server)";
-            t.sendResponseHeaders(200, response.length());
-            OutputStream os = t.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
-        }
-    }*/
-
     static class IndexHandler implements HttpHandler {
         public void handle(HttpExchange t) throws IOException {
             String root = "c:/cntserver/var/www";
