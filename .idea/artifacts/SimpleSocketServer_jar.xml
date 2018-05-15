@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="SimpleSocketServer:jar">
+    <output-path>C:/ShevaUniv/CompNetTech</output-path>
+    <root id="archive" name="SimpleSocketServer.jar">
+      <element id="module-output" name="SimpleSocketServer" />
+    </root>
+  </artifact>
+</component>
