@@ -87,53 +87,49 @@ class httpRequestHandler implements Runnable {
 
             if (temp.equals("GET")) {
 
-
-
                 String fileName = s.nextToken();
                 String url = fileName;
+                fileName = "var/www" + fileName;
 
-                String root = "var/www";
-
+                FileInputStream fis = null;
+                boolean fileExists = true;
+                try {
+                    fis = new FileInputStream(fileName);
+                } catch (FileNotFoundException e) {
+                    fileExists = false;
+                }
 
 
                 String serverLine = "Server: Alexey's Java Socket Server" + CRLF;
                 String statusLine = null;
                 String contentTypeLine = null;
-
+                String entityBody = null;
                 String contentLengthLine = "error" + CRLF;
 
-                if (url.equalsIgnoreCase("/")
-                        || url.equalsIgnoreCase("/index.html")){
-
-                    FileInputStream fis = new FileInputStream(root + "/index.html");
+                if (url.equalsIgnoreCase("/")) {
+                    fis = new FileInputStream("var/www/index.html");
 
                     statusLine = "HTTP/1.1 200 OK" + CRLF;
                     contentTypeLine = "Content-type: text/html" + CRLF;
                     contentLengthLine = "Content-Length: "
                             + (new Integer(fis.available())).toString() + CRLF;
-
                     outWriter(200,statusLine,serverLine,contentTypeLine, contentLengthLine, fis);
-                }
-                else if(url.equalsIgnoreCase("/kitten") || url.equalsIgnoreCase("/kitten.jpeg")){
-                    FileInputStream fis = new FileInputStream(root + "/kitten.jpeg");
-
+                } else if (fileExists) {
                     statusLine = "HTTP/1.1 200 OK" + CRLF;
-                    contentTypeLine = "Content-type: image/jpeg" + CRLF;
+                    contentTypeLine = "Content-type: " + contentType(fileName)
+                            + CRLF;
                     contentLengthLine = "Content-Length: "
                             + (new Integer(fis.available())).toString() + CRLF;
-
                     outWriter(200,statusLine,serverLine,contentTypeLine, contentLengthLine, fis);
-                }
-                else {
-                    FileInputStream fis = null;
+                } else {
                     statusLine = "HTTP/1.1 404 Not Found" + CRLF;
                     contentTypeLine = "Content-type: text/html" + CRLF;
-
                     outWriter(404,statusLine,serverLine,contentTypeLine, contentLengthLine, fis);
                 }
 
             }
         }
+
         try {
             output.close();
             br.close();
@@ -150,6 +146,17 @@ class httpRequestHandler implements Runnable {
 
         while ((bytes = fis.read(buffer)) != -1) {
             os.write(buffer, 0, bytes);
+        }
+    }
+
+    private static String contentType(String fileName) {
+        if (fileName.endsWith(".htm") || fileName.endsWith(".html")
+                || fileName.endsWith(".txt")) {
+            return "text/html";
+        } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+            return "image/jpeg";
+        } else {
+            return "application/octet-stream";
         }
     }
 
