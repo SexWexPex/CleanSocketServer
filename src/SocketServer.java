@@ -12,21 +12,22 @@ import java.util.StringTokenizer;
 
 public class SocketServer {
     public static void main(String args[]) {
-        int port;
-        ServerSocket server_socket;
-        try {
-            port = 8080;
-        } catch (Exception e) {
-            port = 1500;
+        int port ;
+        ServerSocket serverSocket;
+        if (args.length < 1){
+            System.out.println("Please, specify port");
+            System.exit(-1);
         }
+        port = Integer.parseInt(args[0]);
+
         try {
 
-            server_socket = new ServerSocket(port);
+            serverSocket = new ServerSocket(port);
             System.out.println("SocketServer started on port: "
-                    + server_socket.getLocalPort());
+                    + serverSocket.getLocalPort());
 
             while (true) {
-                Socket socket = server_socket.accept();
+                Socket socket = serverSocket.accept();
                 System.out.println("New connection accepted on: "
                         + socket.getInetAddress() + ":" + socket.getPort());
 
@@ -91,7 +92,7 @@ class httpRequestHandler implements Runnable {
                 String fileName = s.nextToken();
                 String url = fileName;
 
-                String root = "src/var/www";
+                String root = "var/www";
 
 
 
